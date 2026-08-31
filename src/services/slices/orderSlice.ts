@@ -1,63 +1,51 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { orderBurgerApi, getOrderByNumberApi } from '../../utils/burger-api';
-import { TOrder } from '../../utils/types';
+import { TOrder } from '@utils-types';
+import { orderBurgerApi } from '@api';
 
-export const createOrder = createAsyncThunk(
-	'order/createOrder',
-	async (ingredientIds: string[]) => {
-		const res = await orderBurgerApi(ingredientIds);
-		return res.order;
-	}
+export const orderBurger = createAsyncThunk(
+  'order/orderBurger',
+  async (data: string[]) => {
+    const response = await orderBurgerApi(data);
+    return response;
+  }
 );
 
-export const fetchOrderByNumber = createAsyncThunk(
-	'order/fetchByNumber',
-	async (number: number) => {
-		const res = await getOrderByNumberApi(number);
-		return res.orders[0];
-	}
-);
+interface TOrderState {
+  orderModalData: TOrder | null;
+  orderRequest: boolean;
+  error: string | null;
+}
 
-type TOrderState = {
-	orderRequest: boolean;
-	orderModalData: TOrder | null;
-	orderInfo: TOrder | null;
-	error: string | null;
-};
-
-const initialState: TOrderState = {
-	orderRequest: false,
-	orderModalData: null,
-	orderInfo: null,
-	error: null,
+export const initialState: TOrderState = {
+  orderModalData: null,
+  orderRequest: false,
+  error: null
 };
 
 export const orderSlice = createSlice({
-	name: 'order',
-	initialState,
-	reducers: {
-		clearOrderModalData: (state) => {
-			state.orderModalData = null;
-		},
-	},
-	extraReducers: (builder) => {
-		builder
-			.addCase(createOrder.pending, (state) => {
-				state.orderRequest = true;
-			})
-			.addCase(createOrder.fulfilled, (state, action) => {
-				state.orderRequest = false;
-				state.orderModalData = action.payload;
-			})
-			.addCase(createOrder.rejected, (state, action) => {
-				state.orderRequest = false;
-				state.error = action.error.message || 'Ошибка оформления заказа';
-			})
-			.addCase(fetchOrderByNumber.fulfilled, (state, action) => {
-				state.orderInfo = action.payload;
-			});
-	},
+  name: 'order',
+  initialState,
+  reducers: {
+    clearOrder: (state) => {
+      state.orderModalData = null;
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(orderBurger.pending, (state) => {
+        state.orderRequest = true;
+        state.error = null;
+      })
+      .addCase(orderBurger.rejected, (state, action) => {
+        state.orderRequest = false;
+        state.error = action.error.message || 'Ошибка создания заказа';
+      })
+      .addCase(orderBurger.fulfilled, (state, action) => {
+        state.orderRequest = false;
+        state.orderModalData = action.payload.order as unknown as TOrder;
+      });
+  }
 });
 
-export const { clearOrderModalData } = orderSlice.actions;
-export default orderSlice.reducer;
+export const { clearOrder } = orderSlice.actions;
+export const orderReducer = orderSlice.reducer;
