@@ -1,36 +1,44 @@
-import { FC, useMemo } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Preloader } from '../ui/preloader';
-import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient, TOrder } from '@utils-types';
+import { OrderInfoUI, Preloader } from '@ui';
 import { useAppSelector } from '../../services/store';
+import { getOrderByNumberApi } from '../../utils/burger-api';
 
 export const OrderInfo: FC = () => {
   const { number } = useParams<{ number: string }>();
+  const [orderData, setOrderData] = useState<TOrder | null>(null);
 
-  const ingredients: TIngredient[] = useAppSelector(
+  const ingredients = useAppSelector(
     (state) => state.ingredients.ingredients
   );
 
-  const orderData = useAppSelector((state) => {
-    if (!number) return null;
-    const orderNum = Number(number);
+  const orders = useAppSelector((state) => state.feed.orders);
+  const userOrders = useAppSelector((state) => state.feed.userOrders);
+  const modalOrder = useAppSelector((state) => state.order.orderModalData);
 
-    // Ищем заказ в ленте заказов (feed)
-    const feedOrder = state.feed.orders.find(
-      (item: TOrder) => item.number === orderNum
-    );
-    if (feedOrder) return feedOrder;
+  useEffect(() => {
+    if (!number) return;
+    const num = Number(number);
 
-    // Если открыт модальный заказ после создания
-    if (state.order.orderModalData?.number === orderNum) {
-      return state.order.orderModalData;
+    const foundOrder =
+      orders.find((item: TOrder) => item.number === num) ||
+      userOrders.find((item: TOrder) => item.number === num) ||
+      (modalOrder?.number === num ? modalOrder : null);
+
+    if (foundOrder) {
+      setOrderData(foundOrder);
+    } else {
+      getOrderByNumberApi(num)
+        .then((data) => {
+          if (data.orders && data.orders.length > 0) {
+            setOrderData(data.orders[0]);
+          }
+        })
+        .catch((err) => console.error(err));
     }
+  }, [number, orders, userOrders, modalOrder]);
 
-    return null;
-  });
-
-  /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
 
@@ -55,17 +63,13 @@ export const OrderInfo: FC = () => {
         } else {
           acc[item].count++;
         }
-
         return acc;
       },
       {}
     );
 
-    const total = (
-      Object.values(ingredientsInfo) as Array<TIngredient & { count: number }>
-    ).reduce(
-      (acc: number, item: TIngredient & { count: number }) =>
-        acc + item.price * item.count,
+    const total = Object.values(ingredientsInfo).reduce(
+      (acc, item) => acc + item.price * item.count,
       0
     );
 

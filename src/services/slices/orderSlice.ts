@@ -1,22 +1,22 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { orderBurgerApi } from '../../utils/burger-api';
 import { TOrder } from '@utils-types';
-import { orderBurgerApi } from '@api';
 
-export const orderBurger = createAsyncThunk(
+export const orderBurger = createAsyncThunk<TOrder, string[]>(
   'order/orderBurger',
-  async (data: string[]) => {
-    const response = await orderBurgerApi(data);
-    return response;
+  async (ingredients) => {
+    const data = await orderBurgerApi(ingredients);
+    return data.order as unknown as TOrder;
   }
 );
 
-interface TOrderState {
+interface IOrderState {
   orderModalData: TOrder | null;
   orderRequest: boolean;
   error: string | null;
 }
 
-export const initialState: TOrderState = {
+const initialState: IOrderState = {
   orderModalData: null,
   orderRequest: false,
   error: null
@@ -36,16 +36,17 @@ export const orderSlice = createSlice({
         state.orderRequest = true;
         state.error = null;
       })
+      .addCase(orderBurger.fulfilled, (state, action) => {
+        state.orderRequest = false;
+        state.orderModalData = action.payload;
+      })
       .addCase(orderBurger.rejected, (state, action) => {
         state.orderRequest = false;
         state.error = action.error.message || 'Ошибка создания заказа';
-      })
-      .addCase(orderBurger.fulfilled, (state, action) => {
-        state.orderRequest = false;
-        state.orderModalData = action.payload.order as unknown as TOrder;
       });
   }
 });
 
 export const { clearOrder } = orderSlice.actions;
 export const orderReducer = orderSlice.reducer;
+export default orderSlice.reducer;

@@ -1,9 +1,10 @@
 import { FC, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { TConstructorIngredient } from '@utils-types';
 import { BurgerConstructorUI } from '@ui';
 import { useAppDispatch, useAppSelector } from '../../services/store';
 import { orderBurger, clearOrder } from '../../services/slices/orderSlice';
+import { clearConstructor } from '../../services/slices/constructorSlice';
+import { useNavigate } from 'react-router-dom';
 
 export const BurgerConstructor: FC = () => {
   const dispatch = useAppDispatch();
@@ -29,7 +30,11 @@ export const BurgerConstructor: FC = () => {
       constructorItems.bun._id
     ];
 
-    dispatch(orderBurger(ingredientIds));
+    dispatch(orderBurger(ingredientIds))
+      .unwrap()
+      .then(() => {
+        dispatch(clearConstructor());
+      });
   };
 
   const closeOrderModal = () => {
@@ -40,7 +45,7 @@ export const BurgerConstructor: FC = () => {
     () =>
       (constructorItems.bun ? constructorItems.bun.price * 2 : 0) +
       constructorItems.ingredients.reduce(
-        (acc: number, item: TConstructorIngredient) => acc + item.price,
+        (s: number, v: TConstructorIngredient) => s + v.price,
         0
       ),
     [constructorItems]
