@@ -1,8 +1,12 @@
 import React, { FC } from 'react';
 import styles from './app-header.module.css';
 import { TAppHeaderUIProps } from './type';
-// @ts-ignore
-import { BurgerIcon, ListIcon, Logo, ProfileIcon } from '@ya.praktikum/react-developer-burger-ui-components';
+import {
+  BurgerIcon,
+  ListIcon,
+  Logo,
+  ProfileIcon
+} from '@zlden/react-developer-burger-ui-components';
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 
@@ -34,9 +38,7 @@ export const AppHeaderUI: FC<TAppHeaderUIProps> = ({ userName }) => (
           {({ isActive }) => (
             <>
               <ListIcon type={isActive ? 'primary' : 'secondary'} />
-              <p className='text text_type_main-default ml-2'>
-                Лента заказов
-              </p>
+              <p className='text text_type_main-default ml-2'>Лента заказов</p>
             </>
           )}
         </NavLink>

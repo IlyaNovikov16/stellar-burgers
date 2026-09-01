@@ -1,13 +1,15 @@
-import { useState, useMemo, useEffect, FC } from 'react';
+import { useState, useMemo, useEffect, FC, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { TIngredient, TTabMode } from '@utils-types';
 import { BurgerIngredientsUI } from '@ui';
 import { useAppSelector } from '../../services/store';
 
 export const BurgerIngredients: FC = () => {
-  const ingredients = useAppSelector(
-    (state) => state.ingredients.ingredients
-  );
+  const ingredients = useAppSelector((state) => state.ingredients.ingredients);
+
+  const titleBunRef = useRef<HTMLHeadingElement>(null);
+  const titleMainRef = useRef<HTMLHeadingElement>(null);
+  const titleSaucesRef = useRef<HTMLHeadingElement>(null);
 
   const buns = useMemo(
     () => ingredients.filter((item: TIngredient) => item.type === 'bun'),
@@ -52,12 +54,12 @@ export const BurgerIngredients: FC = () => {
       buns={buns}
       mains={mains}
       sauces={sauces}
-      titleBunRef={bunsRef as any}
-      titleMainRef={mainsRef as any}
-      titleSaucesRef={saucesRef as any}
-      bunsRef={bunsRef as any}
-      mainsRef={mainsRef as any}
-      saucesRef={saucesRef as any}
+      titleBunRef={titleBunRef}
+      titleMainRef={titleMainRef}
+      titleSaucesRef={titleSaucesRef}
+      bunsRef={bunsRef}
+      mainsRef={mainsRef}
+      saucesRef={saucesRef}
       onTabClick={onTabClick}
     />
   );
