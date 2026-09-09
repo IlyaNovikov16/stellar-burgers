@@ -1,32 +1,39 @@
 import { FC, memo } from 'react';
-import { useLocation } from 'react-router-dom';
-import { TIngredient } from '@utils-types';
+import { useLocation, Link } from 'react-router-dom';
 import { BurgerIngredientUI } from '@ui';
-import { useAppDispatch } from '../../services/store';
+import { TBurgerIngredientProps } from './type';
+import { useDispatch } from 'react-redux';
 import { addIngredient } from '../../services/slices/constructorSlice';
-
-interface TBurgerIngredientProps {
-  ingredient: TIngredient;
-  count: number;
-}
 
 export const BurgerIngredient: FC<TBurgerIngredientProps> = memo(
   ({ ingredient, count }) => {
     const location = useLocation();
-    const dispatch = useAppDispatch();
+    const dispatch = useDispatch();
 
     const handleAdd = () => {
       dispatch(addIngredient(ingredient));
     };
 
     return (
-      <div data-testid="ingredient-item">
-        <BurgerIngredientUI
-          ingredient={ingredient}
-          count={count}
-          locationState={{ background: location }}
-          handleAdd={handleAdd}
-        />
+      <div 
+        data-testid='ingredient-item'
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData('application/json', JSON.stringify(ingredient));
+        }}
+      >
+        <Link
+          to={`/ingredients/${ingredient._id}`}
+          state={{ background: location }}
+          style={{ textDecoration: 'none', color: 'inherit' }}
+        >
+          <BurgerIngredientUI
+            ingredient={ingredient}
+            count={count}
+            locationState={{ background: location }}
+            handleAdd={handleAdd}
+          />
+        </Link>
       </div>
     );
   }
