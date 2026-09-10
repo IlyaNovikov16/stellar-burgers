@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Burger Constructor', () => {
   test.beforeEach(async ({ page }) => {
     await page.routeFromHAR('tests/hars/ingredients.har', {
-      url: /api\/ingredients/,
+      url: '**/api/ingredients',
       update: false 
     });
     await page.goto('/');
@@ -41,20 +41,14 @@ test.describe('Burger Constructor', () => {
   });
 
   test('should process order and clear constructor', async ({ page }) => {
-    await page.route('**/api/auth/user', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true, user: { name: 'Test', email: 'test@test.com' } })
-      });
+    await page.routeFromHAR('tests/hars/user.har', {
+      url: '**/api/auth/user',
+      update: false
     });
 
-    await page.route('**/api/orders', async route => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true, name: 'Test Burger', order: { number: 123456 } })
-      });
+    await page.routeFromHAR('tests/hars/order.har', {
+      url: '**/api/orders',
+      update: false
     });
 
     await page.evaluate(() => {
